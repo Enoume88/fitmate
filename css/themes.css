@@ -1,0 +1,58 @@
+/* Default light (also supports data-theme="light"). Accent behavior is theme-aware. */
+:root, [data-theme="light"], .pds, .pds[data-theme="light"] {
+  color-scheme: light;
+  --pds-bg: #f5f7fa;
+  --pds-sidebar-bg: #f1f4f7;
+  --pds-surface: #ffffff;
+  --pds-surface-alt: #f9fafb;
+  --pds-input-bg: #ffffff;
+  --pds-hover: #edf2f7;
+  --pds-text: #1f2937;
+  --pds-text-secondary: #4b5563;
+  --pds-text-muted: #64748b;
+  --pds-border: #dbe2ea;
+  --pds-border-strong: #bcc9d6;
+  --pds-accent: #1d4ed8;
+  --pds-accent-hover: #1e40af;
+  --pds-accent-soft: #e9f0ff;
+  --pds-accent-fg: #ffffff;
+  --pds-success: #166534;
+  --pds-warning: #92400e;
+  --pds-danger: #b91c1c;
+  --pds-success-soft: #f0fdf4;
+  --pds-warning-soft: #fffbeb;
+  --pds-danger-soft: #fef2f2;
+  --pds-overlay: rgb(15 23 42 / 60%);
+}
+:root[data-theme="dark"], [data-theme="dark"], .pds[data-theme="dark"] {
+  color-scheme: dark;
+  --pds-bg: #171a1f;
+  --pds-sidebar-bg: #1d2127;
+  --pds-surface: #22272e;
+  --pds-surface-alt: #292f38;
+  --pds-input-bg: #262c33;
+  --pds-hover: #303741;
+  --pds-text: #eef2f7;
+  --pds-text-secondary: #c5cbd4;
+  --pds-text-muted: #aeb7c2;
+  --pds-border: #404955;
+  --pds-border-strong: #566272;
+  --pds-accent: #93c5fd;
+  --pds-accent-hover: #bfdbfe;
+  --pds-accent-soft: #1c3553;
+  --pds-accent-fg: #ffffff;
+  --pds-success: #86efac;
+  --pds-warning: #fcd34d;
+  --pds-danger: #fca5a5;
+  --pds-success-soft: #1b3829;
+  --pds-warning-soft: #3a311b;
+  --pds-danger-soft: #45252b;
+  --pds-overlay: rgb(0 0 0 / 55%);
+}
+:root, [data-theme="light"], .pds, .pds[data-theme="light"] { --pds-accent-bg: #1d4ed8; --pds-accent-bg-hover: #1e40af; }
+:root[data-theme="dark"], [data-theme="dark"], .pds[data-theme="dark"] { --pds-accent-bg: #1d4ed8; --pds-accent-bg-hover: #1e40af; }
+
+.pds[data-theme="light"][data-accent="purple"] { --pds-accent: #6d28d9; --pds-accent-hover: #581c87; --pds-accent-soft: #f2ecff; --pds-accent-bg: #6d28d9; --pds-accent-bg-hover: #581c87; }
+.pds[data-theme="dark"][data-accent="purple"] { --pds-accent: #c4b5fd; --pds-accent-hover: #ddd6fe; --pds-accent-soft: #332450; --pds-accent-bg: #6d28d9; --pds-accent-bg-hover: #5b21b6; }
+.pds[data-theme="light"][data-accent="green"] { --pds-accent: #166534; --pds-accent-hover: #14532d; --pds-accent-soft: #eaf7ef; --pds-accent-bg: #166534; --pds-accent-bg-hover: #14532d; }
+.pds[data-theme="dark"][data-accent="green"] { --pds-accent: #86efac; --pds-accent-hover: #bbf7d0; --pds-accent-soft: #1b3829; --pds-accent-bg: #166534; --pds-accent-bg-hover: #14532d; }

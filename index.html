@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#f5f7fa" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="오늘 PT" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./icons/icon-192.png" />
+<title>오늘 PT Compact</title>
+<link rel="stylesheet" href="./css/fitmate.css">
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+<div id="pdsRoot" class="pds" data-theme="light" data-accent="blue" data-density="standard">
+<div class="pds-wrapper">
+<div class="app">
+
+  <header class="top">
+    <div class="top-header">
+      <div class="top-brand">
+        <div class="top-brand-icon">PT</div>
+        <div>
+          <h1>오늘 PT <span class="pill">Compact</span></h1>
+          <p id="todayDateSubtitle">스마트 모바일 피트니스 매니저</p>
+        </div>
+      </div>
+      <button id="themeToggleBtn" class="theme-toggle-btn" title="다크/라이트 모드 전환" onclick="togglePdsTheme()">🌓</button>
+    </div>
+  </header>
+
+  <!-- TAB 1: 오늘 PT (홈 + 오늘의 운동 통합) -->
+  <section id="today" class="screen active">
+    <div id="backupReminderBox"></div>
+
+    <div class="card compact-control-card">
+      <div class="grid2">
+        <div>
+          <label>운동 레벨</label>
+          <select id="userSelect" onchange="onProfileChange()">
+            <option value="friend">초보 (홈트 중심)</option>
+            <option value="me">비기너 (헬스장/기구)</option>
+          </select>
+        </div>
+        <div>
+          <label>프로그램 주차</label>
+          <select id="weekSelect" onchange="renderToday()"></select>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:6px">
+        <div>
+          <label>오늘 요일</label>
+          <input id="workoutDateDisplay" type="text" disabled>
+          <input id="workoutDate" type="date" style="display:none">
+          <select id="daySelect" style="display:none">
+            <option>월</option><option>화</option><option>수</option><option>목</option><option>금</option><option>토</option><option>일</option>
+          </select>
+        </div>
+        <div>
+          <label>오늘 컨디션</label>
+          <select id="fatigueSelect" onchange="renderToday()">
+            <option value="normal">보통 (정규 강도)</option>
+            <option value="good">좋음 (강도 10% 증가)</option>
+            <option value="tired">피곤함 (세트/휴식 조절)</option>
+            <option value="very_tired">매우 피곤 (20% 감량)</option>
+          </select>
+        </div>
+      </div>
+
+      <label>불편한 부위 (터치 시 대체운동 즉각 적용)</label>
+      <div class="checkrow" id="painChecks">
+        <label><input type="checkbox" value="knee" onchange="renderToday()">무릎</label>
+        <label><input type="checkbox" value="shoulder" onchange="renderToday()">어깨</label>
+        <label><input type="checkbox" value="wrist" onchange="renderToday()">손목</label>
+        <label><input type="checkbox" value="back" onchange="renderToday()">허리</label>
+      </div>
+
+      <div id="briefing" class="goodbox" style="margin-top:10px">
+        기본 프로그램 유지. 자세 큐를 우선합니다.
+      </div>
+    </div>
+
+    <div class="card pt-start-banner-card">
+      <div class="pt-start-banner-inner">
+        <div>
+          <div class="pt-start-title" id="todayPlanTitle">오늘의 운동</div>
+          <div class="pt-start-meta" id="todayMeta">불러오는 중...</div>
+        </div>
+        <button id="ptStartBtn" class="btn primary pt-big-start-btn" onclick="startPT()">🔥 PT 시작</button>
+      </div>
+    </div>
+
+    <div id="todayStabilityPanel"></div>
+    <div id="exerciseList"></div>
+  </section>
+
+  <!-- TAB 2: 기록 & 출석 캘린더 (단일 대시보드로 통합) -->
+  <section id="records" class="screen">
+    <div class="card">
+      <h2>출석 캘린더</h2>
+      <p class="muted small">날짜를 터치하면 해당 일자의 운동 기록과 인바디 결과를 바로 확인합니다.</p>
+      <div id="attendanceCalendar"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <h3 id="selectedDateTitle">선택 날짜 상세</h3>
+        <button class="miniBtn" onclick="showRpeModal()">+ 오늘 평가 작성</button>
+      </div>
+      <div id="dateRecordDetail" class="muted small">달력에서 확인하고 싶은 날짜를 터치하세요.</div>
+    </div>
+
+    <div class="card">
+      <h3>이번 달 운동 통계</h3>
+      <div id="monthStatsSummary"></div>
+    </div>
+
+    <div class="card">
+      <h3>운동별 성장 추이</h3>
+      <p class="muted small">원하는 운동을 선택하면 최고 기록과 최근 수행 추이를 확인합니다.</p>
+      <label>운동 선택</label>
+      <select id="trendExerciseSelect" onchange="renderExerciseTrend()"></select>
+      <div id="exerciseTrendBox" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header-flex">
+        <h3>스마트 자동 처방 제안</h3>
+        <button class="miniBtn" onclick="showPrescriptionPreview()">미리보기 / 적용</button>
+      </div>
+      <div id="adaptiveAdviceSummary" class="muted small" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- TAB 3: 인바디 (입력 + 목표 진행률 + 3대 곡선 차트 통합) -->
+  <section id="inbody" class="screen">
+    <div class="card">
+      <h2>인바디 측정</h2>
+      <div id="inbodyReminderBox"></div>
+      
+      <div class="grid2">
+        <div>
+          <label>측정일</label>
+          <input id="ibDate" type="date" />
+        </div>
+        <div>
+          <label>체중 (kg)</label>
+          <input id="ibWeight" type="number" step="0.1" placeholder="예: 78.5">
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>골격근량 (kg)</label>
+          <input id="ibSMM" type="number" step="0.1" placeholder="예: 29.2">
+        </div>
+        <div>
+          <label>체지방량 (kg)</label>
+          <input id="ibBFM" type="number" step="0.1" placeholder="예: 25.4">
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>체지방률 (%)</label>
+          <input id="ibPBF" type="number" step="0.1" placeholder="예: 32.3">
+        </div>
+        <div>
+          <label>인바디 점수</label>
+          <input id="ibScore" type="number" step="1" placeholder="예: 72">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" onclick="saveInbody()">인바디 기록 저장</button>
+      </div>
+
+      <details class="ocr-details" style="margin-top:12px">
+        <summary class="miniBtn" style="width:100%;box-sizing:border-box">📷 사진 OCR 자동 입력 열기</summary>
+        <div style="margin-top:10px">
+          <input type="file" id="ibPhoto" accept="image/*" onchange="previewInbody(event)">
+          <img id="ibPreview" class="preview" style="display:none">
+          <div class="grid2" style="margin-top:8px">
+            <button class="btn secondary" onclick="runOcr()">사진 OCR 분석</button>
+            <button class="btn secondary" onclick="parseOcrText()">수치 자동 입력</button>
+          </div>
+          <textarea id="ocrText" rows="4" style="margin-top:8px" placeholder="인식된 텍스트가 여기에 표시됩니다."></textarea>
+          <div id="ocrStatus" class="muted small" style="margin-top:6px"></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>목표 달성 진행률</h3>
+      <div id="goalProgressInbody"></div>
+    </div>
+
+    <div class="card">
+      <h3>성장 추이 그래프</h3>
+      <p class="muted small">고해상도 PDS 베지에 곡선으로 시각화된 신체 변화입니다.</p>
+
+      <div class="chart-container">
+        <div class="chart-header-row">
+          <span class="chart-title">⚖️ 체중 변화 (kg)</span>
+          <span id="latestWeightBadge" class="chart-latest-tag">최신 체중</span>
+        </div>
+        <canvas id="chartWeight" class="chart"></canvas>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-header-row">
+          <span class="chart-title">🔥 체지방량 변화 (kg)</span>
+          <span id="latestFatBadge" class="chart-latest-tag">최신 체지방</span>
+        </div>
+        <canvas id="chartFat" class="chart"></canvas>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-header-row">
+          <span class="chart-title">💪 골격근량 변화 (kg)</span>
+          <span id="latestMuscleBadge" class="chart-latest-tag">최신 골격근</span>
+        </div>
+        <canvas id="chartMuscle" class="chart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 4: 설정 (운동DB/영상 통합, 백업, 목표 설정) -->
+  <section id="settings" class="screen">
+    <div class="card">
+      <h2>설정 & 관리</h2>
+      <p class="muted small">목표 관리, 운동표 커스텀, 데이터 백업을 한곳에서 모바일 친화적으로 처리합니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>목표 설정</h3>
+      <div class="grid2">
+        <div>
+          <label>목표 항목</label>
+          <select id="goalMetric">
+            <option value="weight">체중</option>
+            <option value="body_fat_mass">체지방량</option>
+            <option value="percent_body_fat">체지방률</option>
+            <option value="skeletal_muscle_mass">골격근량</option>
+            <option value="inbody_score">인바디점수</option>
+          </select>
+        </div>
+        <div>
+          <label>목표값</label>
+          <input id="goalAmount" type="number" step="0.1" placeholder="예: 75">
+        </div>
+      </div>
+      <button class="btn secondary" style="width:100%;margin-top:10px" onclick="saveGoalSettings()">목표 저장</button>
+    </div>
+
+    <div class="card">
+      <h3>운동 & 루틴 관리</h3>
+      <p class="muted small">운동표를 커스텀 편집하거나 운동별 유튜브 자세 영상을 통합 관리합니다.</p>
+      <div class="grid2">
+        <button class="btn secondary" onclick="nav('editor')">운동표 편집기</button>
+        <button class="btn secondary" onclick="nav('library')">운동DB & 영상 링크</button>
+      </div>
+      <div class="grid2" style="margin-top:8px">
+        <button class="btn secondary" onclick="exportProgramCsv()">운동표 CSV 내보내기</button>
+        <button class="btn secondary" onclick="exportVideoLinksCsv()">영상 링크 CSV</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>데이터 백업 & 복원</h3>
+      <p class="muted small">운동 기록과 인바디 데이터를 안전하게 보관합니다.</p>
+      <div class="grid2">
+        <button class="btn primary" onclick="exportBackup()">전체 백업 (JSON)</button>
+        <button class="btn secondary" onclick="exportRecordsCsv()">기록 CSV</button>
+      </div>
+      <label style="margin-top:12px">백업 파일 복원</label>
+      <input type="file" accept="application/json" onchange="importBackup(event)">
+      <div id="backupStatus" class="muted small" style="margin-top:6px"></div>
+      <div class="cue small" style="margin-top:10px;line-height:1.4">
+        💡 <b>기존 FitMate(포트 8088) 데이터 이전 방법</b><br>
+        브라우저 보안 규칙상 8088 포트의 기록은 자동 공유되지 않습니다. 기존 창에서 [전체 백업]을 받아 저장된 .json 파일을 여기서 [백업 파일 복원]으로 불러오면 모든 기록이 안전하게 이전됩니다.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>앱 정보</h3>
+      <div class="grid2">
+        <button class="btn secondary" onclick="openSetupWizard(true)">처음 설정 다시 열기</button>
+        <button class="btn secondary" onclick="installPWA()">홈 화면에 설치</button>
+      </div>
+      <div class="muted small" style="margin-top:10px">오늘 PT Compact v1.0 (PDS v1.0 Edition)</div>
+    </div>
+  </section>
+
+  <!-- 서브 화면 1: 운동표 편집기 -->
+  <section id="editor" class="screen">
+    <div class="card">
+      <button class="miniBtn" onclick="nav('settings',document.querySelectorAll('.tab')[3])">← 설정으로 돌아가기</button>
+      <h2 style="margin-top:10px">프로그램 편집</h2>
+      <p class="muted small">선택된 운동 레벨과 요일의 루틴을 직접 편집합니다.</p>
+      <div class="grid2">
+        <button class="btn secondary" onclick="loadEditorPlan()">현재 요일 불러오기</button>
+        <button class="btn secondary" onclick="resetEditorPlan()">기본값 복원</button>
+      </div>
+      <div id="editorList" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h3>운동 추가</h3>
+      <label>운동 선택</label><select id="addExerciseSelect"></select>
+      <div class="grid2">
+        <div><label>세트</label><input id="addSets" type="number" value="3" min="1"></div>
+        <div><label>횟수</label><input id="addReps" type="number" value="12" min="0"></div>
+      </div>
+      <div class="grid2">
+        <div><label>시간(초)</label><input id="addDuration" type="number" value="0" min="0"></div>
+        <div><label>휴식(초)</label><input id="addRest" type="number" value="60" min="0"></div>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <button class="btn secondary" onclick="addEditorExercise()">추가</button>
+        <button class="btn primary" onclick="saveEditorPlan()">편집 저장</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 서브 화면 2: 운동DB & 영상 링크 통합 화면 -->
+  <section id="library" class="screen">
+    <div class="card">
+      <button class="miniBtn" onclick="nav('settings',document.querySelectorAll('.tab')[3])">← 설정으로 돌아가기</button>
+      <h2 style="margin-top:10px">운동DB & 유튜브 영상 링크</h2>
+      <p class="muted small">운동별 상세 안내와 유튜브 자세 영상을 한 화면에서 검색하고 즉시 등록합니다.</p>
+      <input id="searchEx" placeholder="운동명, 부위, 기구 검색" oninput="renderLibrary()">
+      <div id="libraryList" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- 고정 4개 하단 탭 바 -->
+  <nav class="tabs">
+    <div class="tabs-inner four-tabs">
+      <button class="tab active" onclick="nav('today',this)">
+        <span class="tab-icon">🏋️</span>
+        <span>오늘 PT</span>
+      </button>
+      <button class="tab" onclick="nav('records',this)">
+        <span class="tab-icon">📅</span>
+        <span>기록·달력</span>
+      </button>
+      <button class="tab" onclick="nav('inbody',this)">
+        <span class="tab-icon">⚖️</span>
+        <span>인바디</span>
+      </button>
+      <button class="tab" onclick="nav('settings',this)">
+        <span class="tab-icon">⚙️</span>
+        <span>설정</span>
+      </button>
+    </div>
+  </nav>
+
+</div> <!-- End of .app -->
+
+<!-- 대화형 모달 시스템 -->
+<div id="setupWizardOverlay" class="overlay">
+  <div class="modal">
+    <h2>처음 설정</h2>
+    <p class="muted small">처음 한 번만 설정합니다. 홈 화면과 오늘 운동에 자동 맞춤 적용됩니다.</p>
+    <label>운동 레벨</label>
+    <select id="wizardUser">
+      <option value="friend">초보: 운동 경험 거의 없음</option>
+      <option value="me">비기너: 운동 경험 약간 있음</option>
+    </select>
+    <label>현재 체중 (kg)</label>
+    <input id="wizardCurrentWeight" type="number" step="0.1" placeholder="예: 80">
+    <label>목표 항목</label>
+    <select id="wizardGoalMetric">
+      <option value="weight">체중</option>
+      <option value="body_fat_mass">체지방량</option>
+      <option value="skeletal_muscle_mass">골격근량</option>
+    </select>
+    <label>목표값</label>
+    <input id="wizardGoalTarget" type="number" step="0.1" placeholder="예: 75">
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" onclick="completeSetupWizard()">시작하기</button>
+      <button class="btn secondary" onclick="skipSetupWizard()">나중에 설정</button>
+    </div>
+  </div>
+</div>
+
+<div id="ptOverlay" class="overlay">
+  <div class="modal">
+    <h2 id="ptName">운동</h2>
+    <p id="ptSub" class="muted"></p>
+    <div id="ptBody"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn secondary" onclick="prevStep()">이전</button>
+      <button class="btn primary" id="ptMainBtn" onclick="ptAction()">시작</button>
+      <button class="btn secondary" onclick="closePT()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="rpeOverlay" class="overlay">
+  <div class="modal">
+    <h2>오늘 운동 평가</h2>
+    <label>운동 강도</label>
+    <select id="rpeSelect">
+      <option value="5">5 여유 있음</option>
+      <option value="6">6 적당함</option>
+      <option value="7">7 힘들지만 가능</option>
+      <option value="8">8 많이 힘듦</option>
+      <option value="9">9 거의 한계</option>
+    </select>
+    <label>완료율</label>
+    <select id="completionSelect">
+      <option value="100">100% 완료</option>
+      <option value="80">80%</option>
+      <option value="60">60%</option>
+      <option value="40">40% 이하</option>
+    </select>
+    <label>불편했던 부위</label>
+    <div class="checkrow" id="postPainChecks">
+      <label><input type="checkbox" value="none">없음</label>
+      <label><input type="checkbox" value="knee">무릎</label>
+      <label><input type="checkbox" value="back">허리</label>
+      <label><input type="checkbox" value="shoulder">어깨</label>
+      <label><input type="checkbox" value="wrist">손목</label>
+    </div>
+    <label>오늘의 메모</label>
+    <textarea id="workoutMemo" rows="3" placeholder="예: 런지 무릎 안정적, 롱풀 등 자극 좋음"></textarea>
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary" onclick="saveRpe()">저장하기</button>
+      <button class="btn secondary" onclick="hideRpeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="exerciseDetailOverlay" class="overlay">
+  <div class="modal">
+    <h2 id="detailName">운동 상세</h2>
+    <p id="detailMeta" class="muted"></p>
+    <div id="detailBody"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn secondary" onclick="closeExerciseDetail()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="prescriptionPreviewOverlay" class="overlay">
+  <div class="modal">
+    <h2>자동 처방 미리보기</h2>
+    <p class="muted small">피로도 및 최근 기록에 따른 추천 변경안입니다.</p>
+    <div id="prescriptionPreviewList" style="max-height:50vh;overflow-y:auto;margin-top:10px"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary" onclick="applySelectedPrescription()">선택 처방 적용</button>
+      <button class="btn secondary" onclick="hidePrescriptionPreview()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="pdsToastContainer"></div>
+</div> <!-- End of .pds-wrapper -->
+</div> <!-- End of #pdsRoot -->
+
+
+<script src="./js/store.js"></script>
+<script src="./js/prescription.js"></script>
+<script src="./js/ui.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>

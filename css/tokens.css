@@ -1,0 +1,45 @@
+:root, .pds {
+  --pds-font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
+  --pds-font-scale: 1;
+  --pds-font-xs: max(12px, calc(12px * var(--pds-font-scale)));
+  --pds-font-sm: max(12px, calc(13px * var(--pds-font-scale)));
+  --pds-font-md: calc(14px * var(--pds-font-scale));
+  --pds-font-reading: calc(16px * var(--pds-font-scale));
+  --pds-font-lg: calc(20px * var(--pds-font-scale));
+  --pds-font-xl: calc(24px * var(--pds-font-scale));
+  --pds-font-2xl: calc(28px * var(--pds-font-scale));
+  --pds-line-body: 1.55;
+  --pds-line-heading: 1.3;
+  --pds-weight-normal: 400;
+  --pds-weight-medium: 500;
+  --pds-weight-semibold: 600;
+  --pds-weight-bold: 700;
+  --pds-density: 1;
+  --pds-space-1: calc(4px * var(--pds-density));
+  --pds-space-2: calc(8px * var(--pds-density));
+  --pds-space-3: calc(12px * var(--pds-density));
+  --pds-space-4: calc(16px * var(--pds-density));
+  --pds-space-5: calc(20px * var(--pds-density));
+  --pds-space-6: calc(24px * var(--pds-density));
+  --pds-space-8: calc(32px * var(--pds-density));
+  --pds-radius-sm: 6px;
+  --pds-radius-md: 8px;
+  --pds-radius-lg: 12px;
+  --pds-radius-xl: 16px;
+  --pds-radius-pill: 999px;
+  --pds-sidebar-width: 292px;
+  --pds-control-sm: max(32px, calc(34px * var(--pds-density)));
+  --pds-control-md: max(36px, calc(38px * var(--pds-density)));
+  --pds-control-lg: max(40px, calc(44px * var(--pds-density)));
+  --pds-shadow-sm: 0 1px 3px rgb(15 23 42 / 6%);
+  --pds-shadow-md: 0 8px 30px rgb(15 23 42 / 9%);
+  --pds-transition: 130ms ease;
+  font-family: var(--pds-font-family);
+  font-size: var(--pds-font-md);
+  line-height: var(--pds-line-body);
+  color: var(--pds-text);
+  background: var(--pds-bg);
+}
+.pds[data-density="compact"] { --pds-density: .88; }
+.pds[data-density="comfortable"] { --pds-density: 1.12; }
+/* Scaling is opt-in; UI remains unchanged until the consuming application uses .pds. */
